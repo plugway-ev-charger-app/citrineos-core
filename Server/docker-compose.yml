@@ -15,21 +15,6 @@ services:
       interval: 10s
       timeout: 10s
       retries: 3
-  ocpp-db:
-    image: citrineos/postgis:v1.1.0
-    ports:
-      - 5432:5432
-    volumes:
-      - ./data/postgresql/pgdata:/var/lib/postgresql/data
-    environment:
-      POSTGRES_DB: citrine
-      POSTGRES_USER: citrine
-      POSTGRES_PASSWORD: 'citrine'
-    healthcheck:
-      test: 'pg_isready --username=citrine'
-      interval: 5s
-      timeout: 10s
-      retries: 5
 
   citrine:
     build:
@@ -83,8 +68,6 @@ services:
       APP_ENV: 'docker'
       CITRINEOS_UTIL_DIRECTUS_TOKEN: '-ssaT85n4S-wVD21LKOCDwvXN5PtnJc0'
     depends_on:
-      ocpp-db:
-        condition: service_healthy
       amqp-broker:
         condition: service_healthy
       directus:
@@ -107,9 +90,6 @@ services:
     volumes:
       - ./data/directus/uploads:/directus/uploads
       - ./directus-env-config.cjs:/directus/config.cjs
-    depends_on:
-      ocpp-db:
-        condition: service_healthy
     environment:
       APP_NAME: 'all'
       KEY: '1234567890'
@@ -119,12 +99,13 @@ services:
       CONFIG_PATH: '/directus/config.cjs'
       EXTENSIONS_AUTO_RELOAD: 'true'
       EXTENSIONS_CACHE_TTL: '1s'
+      DB_SEARCH_PATH: 'array:citrineos,public'
       DB_CLIENT: 'pg'
-      DB_HOST: ocpp-db
+      DB_HOST: 'host.docker.internal'
       DB_PORT: 5432
-      DB_DATABASE: 'citrine'
-      DB_USER: 'citrine'
-      DB_PASSWORD: 'citrine'
+      DB_DATABASE: 'plugwayDev'
+      DB_USER: 'postgres'
+      DB_PASSWORD: 'postgres'
       WEBSOCKETS_ENABLED: 'true'
     healthcheck:
       test: wget --no-verbose --tries=1 --spider http://127.0.0.1:8055/server/health || exit 1

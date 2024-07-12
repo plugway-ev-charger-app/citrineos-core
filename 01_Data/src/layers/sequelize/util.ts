@@ -70,6 +70,9 @@ export class DefaultSequelizeInstance {
       username: config.data.sequelize.username,
       password: config.data.sequelize.password,
       storage: config.data.sequelize.storage,
+      define: {
+        schema: "citrineos",
+      },
       models: [
         AdditionalInfo,
         Authorization,

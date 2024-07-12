@@ -46,12 +46,12 @@ export function createDockerConfig() {
     },
     data: {
       sequelize: {
-        host: 'ocpp-db',
+        host: 'host.docker.internal',
         port: 5432,
-        database: 'citrine',
+        database: 'plugwayDev',
         dialect: 'postgres',
-        username: 'citrine',
-        password: 'citrine',
+        username: 'postgres',
+        password: 'postgres',
         storage: '',
         sync: false,
         alter: true,
