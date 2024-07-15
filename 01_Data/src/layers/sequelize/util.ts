@@ -60,7 +60,7 @@ export class DefaultSequelizeInstance {
   private static defaultSequelize(config: SystemConfig, sync?: boolean, logger?: Logger<ILogObj>) {
     const sequelizeLogger = logger ? logger.getSubLogger({ name: this.name }) : new Logger<ILogObj>({ name: this.name });
 
-    sequelizeLogger.info('Creating default Sequelize instance');
+    sequelizeLogger.info('Creating default Sequelize instance with config: ', config);
 
     const sequelize: Sequelize = new Sequelize({
       host: config.data.sequelize.host,
@@ -70,9 +70,6 @@ export class DefaultSequelizeInstance {
       username: config.data.sequelize.username,
       password: config.data.sequelize.password,
       storage: config.data.sequelize.storage,
-      define: {
-        schema: "citrineos",
-      },
       models: [
         AdditionalInfo,
         Authorization,
@@ -113,6 +110,7 @@ export class DefaultSequelizeInstance {
       },
     });
 
+    sequelizeLogger.info('Sequelize instance created');
     if (config.data.sequelize.alter) {
       sequelize.sync({ alter: true }).then(() => {
         sequelizeLogger.info('Database altered');

@@ -99,7 +99,6 @@ services:
       CONFIG_PATH: '/directus/config.cjs'
       EXTENSIONS_AUTO_RELOAD: 'true'
       EXTENSIONS_CACHE_TTL: '1s'
-      DB_SEARCH_PATH: 'array:citrineos,public'
       DB_CLIENT: 'pg'
       DB_HOST: 'host.docker.internal'
       DB_PORT: 5432

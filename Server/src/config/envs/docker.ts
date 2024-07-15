@@ -54,7 +54,7 @@ export function createDockerConfig() {
         password: 'postgres',
         storage: '',
         sync: false,
-        alter: true,
+        alter: false,
       },
     },
     util: {
