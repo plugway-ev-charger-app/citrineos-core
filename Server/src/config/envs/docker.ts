@@ -46,16 +46,16 @@ export function createDockerConfig() {
     },
     data: {
       sequelize: {
-        host: 'host.docker.internal',
+        host: 'plugway-db-1.c1u2ksc62zcr.eu-central-1.rds.amazonaws.com',
         port: 5432,
-        database: 'plugwayDev',
+        database: 'plugway-db',
         dialect: 'postgres',
         username: 'postgres',
-        password: 'postgres',
+        password: '3KiclZGdm3Zmmu8TBvnS',
         storage: '',
         sync: false,
-        alter: false,
-      },
+        alter: true,
+      },
     },
     util: {
       cache: {

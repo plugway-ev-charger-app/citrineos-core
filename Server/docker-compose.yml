@@ -100,11 +100,11 @@ services:
       EXTENSIONS_AUTO_RELOAD: 'true'
       EXTENSIONS_CACHE_TTL: '1s'
       DB_CLIENT: 'pg'
-      DB_HOST: 'host.docker.internal'
+      DB_HOST: 'plugway-db-1.c1u2ksc62zcr.eu-central-1.rds.amazonaws.com'
       DB_PORT: 5432
-      DB_DATABASE: 'plugwayDev'
+      DB_DATABASE: 'plugway-db'
       DB_USER: 'postgres'
-      DB_PASSWORD: 'postgres'
+      DB_PASSWORD: '3KiclZGdm3Zmmu8TBvnS'
       WEBSOCKETS_ENABLED: 'true'
     healthcheck:
       test: wget --no-verbose --tries=1 --spider http://127.0.0.1:8055/server/health || exit 1
