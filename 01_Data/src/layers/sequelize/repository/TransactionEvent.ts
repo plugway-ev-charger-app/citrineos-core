@@ -182,6 +182,61 @@ export class SequelizeTransactionEventRepository extends SequelizeRepository<Tra
     });
   }
 
+  async updateTransaction(value: TransactionEventRequest, stationId: string): Promise<void> {
+    let evse: Evse | undefined;
+    if (value.evse) {
+      [evse] = await this.evse.readOrCreateByQuery({
+        where: {
+          id: value.evse.id,
+          connectorId: value.evse.connectorId ? value.evse.connectorId : null,
+        },
+      });
+    }
+  
+    return await this.s.transaction(async (sequelizeTransaction) => {
+      let transaction: Transaction;
+      let created = false;
+      const existingTransaction = await this.s.models[Transaction.MODEL_NAME].findOne({
+        where: {
+          stationId,
+          transactionId: value.transactionInfo.transactionId,
+        },
+        transaction: sequelizeTransaction,
+      });
+  
+      if (existingTransaction) {
+        console.log("There is an existingTransaction");
+        if (existingTransaction.get('isActive') !== false) {
+          console.log("Existing transaction is active");
+        }
+        console.log(value.eventType);
+        if (existingTransaction.get('isActive') !== false && value.eventType === TransactionEventEnumType.Ended) {
+          existingTransaction.set('isActive', false);
+          console.log("Transaction ended and isActive set to false");
+        }
+        await existingTransaction.update({
+          evseDatabaseId: evse ? evse.get('databaseId') : null,
+          ...value.transactionInfo,
+          isActive: existingTransaction.get('isActive'),
+        }, { transaction: sequelizeTransaction });
+        transaction = (await existingTransaction.reload({
+          transaction: sequelizeTransaction,
+          include: [TransactionEvent, MeterValue],
+        })) as Transaction;
+      } else {
+        console.log("There is not an existingTransaction");
+        const newTransaction = Transaction.build({
+          stationId,
+          evseDatabaseId: evse ? evse.get('databaseId') : null,
+          ...value.transactionInfo,
+          isActive: value.eventType !== TransactionEventEnumType.Ended,
+        });
+        transaction = await newTransaction.save({ transaction: sequelizeTransaction });
+        created = true;
+      }
+    });
+  }
+
   /**
    * @param stationId StationId of the charging station where the transaction took place.
    * @param evse Evse where the transaction took place.

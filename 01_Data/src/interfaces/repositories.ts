@@ -107,6 +107,7 @@ export interface ITransactionEventRepository extends CrudRepository<TransactionE
   readAllTransactionsByStationIdAndEvseAndChargingStates(stationId: string, evse: EVSEType, chargingStates?: ChargingStateEnumType[]): Promise<Transaction[]>;
   readAllActiveTransactionsByIdToken(idToken: IdTokenType): Promise<Transaction[]>;
   readAllMeterValuesByTransactionDataBaseId(transactionDataBaseId: number): Promise<MeterValue[]>;
+  updateTransaction(value: TransactionEventRequest,stationId:string): Promise<void>;
 }
 
 export interface IVariableMonitoringRepository extends CrudRepository<VariableMonitoringType> {
@@ -127,7 +128,7 @@ export interface ITariffRepository extends CrudRepository<Tariff> {
   findByStationId(stationId: string): Promise<Tariff | undefined>;
   readAllByQuerystring(query: TariffQueryString): Promise<Tariff[]>;
   deleteAllByQuerystring(query: TariffQueryString): Promise<Tariff[]>;
-  upsertTariff(tariff: Tariff): Promise<Tariff>;
+  upsertTariff(tariffs: Tariff[]): Promise<Tariff[]>;
 }
 
 export interface ICertificateRepository extends CrudRepository<Certificate> {

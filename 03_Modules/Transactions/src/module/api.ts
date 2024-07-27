@@ -109,25 +109,43 @@ export class TransactionsModuleApi
   // TODO: Determine how to implement readAllTransactionsByStationIdAndChargingStates as a GET...
   // TODO: Determine how to implement existsActiveTransactionByIdToken as a GET...
 
+  // @AsDataEndpoint(
+  //   Namespace.Tariff,
+  //   HttpMethod.Put,
+  //   undefined,
+  //   TariffSchema,
+  // )
+  // async upsertTariff(
+  //   request: FastifyRequest<{
+  //     Body: any;
+  //   }>,
+  // ): Promise<Tariff> {
+  //   const tariff = this.buildTariff(plainToInstance(UpsertTariffRequest, request.body));
+  //   return await this._module.tariffRepository.upsertTariff(tariff);
+  // }
+
   @AsDataEndpoint(
     Namespace.Tariff,
     HttpMethod.Put,
     undefined,
-    TariffSchema,
+    undefined
   )
-  async upsertTariff(
+  async upsertTariffs(
     request: FastifyRequest<{
-      Body: any;
+      Body: {
+        stationIds: string[];
+        tariffData: UpsertTariffRequest;
+      };
     }>,
-  ): Promise<Tariff> {
-    const tariff = this.buildTariff(plainToInstance(UpsertTariffRequest, request.body));
-    return await this._module.tariffRepository.upsertTariff(tariff);
+  ): Promise<Tariff[]> {
+    const { stationIds, tariffData } = request.body;
+    const tariffs = stationIds.map((stationId: string) => this.buildTariff(stationId, tariffData));
+    return await this._module.tariffRepository.upsertTariff(tariffs);
   }
 
-  // TODO: move to service layer
-  private buildTariff(request: UpsertTariffRequest): Tariff {
+  public buildTariff(stationId: string, request: UpsertTariffRequest): Tariff {
     return Tariff.newInstance({
-      id: request.id,
+      stationId,
       currency: request.currency,
       pricePerKwh: request.pricePerKwh,
       pricePerMin: request.pricePerMin,

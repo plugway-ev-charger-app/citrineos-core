@@ -399,6 +399,10 @@ export class TransactionsModule extends AbstractModule {
           transaction.id,
           transaction.totalKwh
         );
+          // Persist the changes to the database
+          await this._transactionEventRepository.updateTransaction(message.payload,
+            stationId);
+            this._logger.debug("Inside transaction event ended")
       }
 
       this.sendCallResultWithMessage(message, response).then(
@@ -479,6 +483,8 @@ export class TransactionsModule extends AbstractModule {
       ],
     });
     const variable = component?.variables?.[0];
+    this._logger.info(component);
+    this._logger.info(variable);
     if (!component || !variable) {
       this._logger.warn(
         'Missing component or variable for status notification. Status notification cannot be assigned to device model.',

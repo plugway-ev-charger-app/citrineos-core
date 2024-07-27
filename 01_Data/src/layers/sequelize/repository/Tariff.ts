@@ -22,20 +22,30 @@ export class SequelizeTariffRepository extends SequelizeRepository<Tariff> imple
     });
   }
 
-  async upsertTariff(tariff: Tariff): Promise<Tariff> {
+  async upsertTariff(tariffs: Tariff[]): Promise<Tariff[]> {
     return await this.s.transaction(async (transaction) => {
-      const savedTariff = await this.readOnlyOneByQuery({
-        where: {id: tariff.id},
+      const tariffDataToUpsert = tariffs.map(tariff => ({
+        ...tariff.data,
+        stationId: tariff.stationId,
+      }));
+
+      const upsertedTariffs = await Tariff.bulkCreate(tariffDataToUpsert, {
+        updateOnDuplicate: [
+          'currency', 'pricePerKwh', 'pricePerMin', 'pricePerSession',
+          'taxRate', 'authorizationAmount', 'paymentFee', 'updatedAt'
+        ],
         transaction
       });
-      if (savedTariff) {
-        const updatedTariff = await savedTariff.set(tariff.data).save({transaction});
-        this.emit('updated', [updatedTariff]);
-        return updatedTariff;
+
+      for (const tariff of upsertedTariffs) {
+        if (tariff.isNewRecord) {
+          this.emit('created', [tariff]);
+        } else {
+          this.emit('updated', [tariff]);
+        }
       }
-      const createdTariff = await tariff.save({ transaction });
-      this.emit('created', [createdTariff]);
-      return createdTariff;
+
+      return upsertedTariffs;
     });
   }
 

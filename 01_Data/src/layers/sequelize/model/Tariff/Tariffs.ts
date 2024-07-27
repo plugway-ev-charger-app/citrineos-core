@@ -100,6 +100,7 @@ export class Tariff extends Model implements TariffData {
   get data(): TariffData {
     return {
       id: this.id,
+      stationId: this.stationId,
       currency: this.currency,
       pricePerKwh: this.pricePerKwh,
       pricePerMin: this.pricePerMin,
@@ -113,7 +114,8 @@ export class Tariff extends Model implements TariffData {
 }
 
 export type TariffData = {
-  id: number;
+  id?: number;  // Make the id optional
+  stationId: string;  // Add the stationId field
   currency: string;
 
   pricePerKwh: number;
