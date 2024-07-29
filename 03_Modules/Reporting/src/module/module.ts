@@ -258,6 +258,25 @@ export class ReportingModule extends AbstractModule {
     props?: HandlerProperties,
   ): Promise<void> {
     this._logger.info('NotifyReport received:', message, props);
+    const reportUrl:string|null = await this._cache.get(
+      message?.payload?.requestId?.toString(),
+      AbstractModule.CALLBACK_URL_REPORT_CACHE_PREFIX + message.context.stationId
+    )
+    this._logger.info("report url is" + reportUrl)
+    if (reportUrl) {
+      try {
+        await fetch(reportUrl, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(message.payload),
+        });
+      } catch (error) {
+        // TODO: Ideally the error log is also stored in the database in a failed invocations table to ensure these are visible outside of a log file.
+        this._logger.error('Failed sending call result with reportUrl: ', error);
+      }
+    }
     const timestamp = message.payload.generatedAt;
 
     for (const reportDataType of message.payload.reportData
@@ -287,6 +306,7 @@ export class ReportingModule extends AbstractModule {
             attributeType: variableAttribute.type,
             attributeStatus: SetVariableStatusEnumType.Accepted,
             attributeStatusInfo: { reasonCode: message.action },
+            evseDatabaseId:variableAttribute.evseDatabaseId,
             component: variableAttribute.component,
             variable: variableAttribute.variable,
           },

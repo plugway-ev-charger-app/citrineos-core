@@ -167,20 +167,25 @@ export class SequelizeDeviceModelRepository extends SequelizeRepository<Variable
           })
         )[0]
       : undefined;
-
+      console.log("Inside findOrCreateEvseAndComponent for component name" + componentType.name + "evse is:");
+      console.log(evse)
     const [component, componentCreated] = await this.component.readOrCreateByQuery({
-      where: { name: componentType.name, instance: componentType.instance ? componentType.instance : null },
+      where: { name: componentType.name, instance: componentType.instance ? componentType.instance : null,
+        evseDatabaseId:evse ? evse.databaseId:null },
       defaults: {
         // Explicit assignment because evse field is a relation and is not able to accept a default value
         name: componentType.name,
         instance: componentType.instance,
       },
     });
+    console.log(componentCreated);
+    console.log(component);
     // Note: this permits changing the evse related to the component
     if (component.evseDatabaseId !== evse?.databaseId && evse) {
+      console.log("Inside evse id change of component");
       await this.component.updateByKey({ evseDatabaseId: evse.databaseId }, component.get('id'));
     }
-
+    console.log("After evse id change of component")
     if (componentCreated && stationId) {
       // Only execute if this method is called in the context of a specific station
       // Excerpt from OCPP 2.0.1 Part 1 Architecture & Topology - 4.2 :
@@ -196,7 +201,7 @@ export class SequelizeDeviceModelRepository extends SequelizeRepository<Variable
             instance: null,
           },
         });
-
+        console.log("default variable created");
         // This can happen asynchronously
         this.componentVariable.readOrCreateByQuery({
           where: { componentId: component.id, variableId: defaultComponentVariable.id },
@@ -213,6 +218,7 @@ export class SequelizeDeviceModelRepository extends SequelizeRepository<Variable
             mutability: MutabilityEnumType.ReadOnly,
           }),
         );
+        console.log("Variable attribute is created");
       }
     }
 
@@ -287,6 +293,9 @@ export class SequelizeDeviceModelRepository extends SequelizeRepository<Variable
   }
 
   async updateResultByStationId(result: SetVariableResultType, stationId: string, isoTimestamp: string): Promise<VariableAttribute | undefined> {
+    console.log("Inside updateResultByStationId, before savedVariableAttribute");
+    console.log(result);
+    console.log(result.evseDatabaseId);
     const savedVariableAttribute = await super.readOnlyOneByQuery({
       where: { stationId, type: result.attributeType ?? AttributeEnumType.Actual },
       include: [
@@ -295,6 +304,7 @@ export class SequelizeDeviceModelRepository extends SequelizeRepository<Variable
           where: {
             name: result.component.name,
             instance: result.component.instance ? result.component.instance : null,
+            evseDatabaseId: result.evseDatabaseId ? result.evseDatabaseId : null
           },
         },
         {
@@ -306,6 +316,7 @@ export class SequelizeDeviceModelRepository extends SequelizeRepository<Variable
         },
       ],
     });
+    console.log("Inside updateResultByStationId, after savedVariableAttribute");
     if (savedVariableAttribute) {
       await this.variableStatus.create(
         VariableStatus.build({

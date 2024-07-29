@@ -9,7 +9,7 @@ import 'reflect-metadata';
 import { ILogObj, Logger } from 'tslog';
 import { v4 as uuidv4 } from 'uuid';
 import { AS_HANDLER_METADATA, IHandlerDefinition, IModule } from '.';
-import { OcppRequest, OcppResponse } from '../..';
+import { GetBaseReportRequest, NotifyEventRequest, NotifyReportRequest, OcppRequest, OcppResponse } from '../..';
 import { SystemConfig } from '../../config/types';
 import { CallAction, ErrorCode, OcppError } from '../../ocpp/rpc/message';
 import { RequestBuilder } from '../../util/request';
@@ -27,6 +27,7 @@ import {
 
 export abstract class AbstractModule implements IModule {
   public static readonly CALLBACK_URL_CACHE_PREFIX: string = 'CALLBACK_URL_';
+  public static readonly CALLBACK_URL_REPORT_CACHE_PREFIX:string = 'CALLBACK_URL_REPORT'
 
   protected _config: SystemConfig;
   protected readonly _cache: ICache;
@@ -239,6 +240,17 @@ export abstract class AbstractModule implements IModule {
         AbstractModule.CALLBACK_URL_CACHE_PREFIX + identifier,
         this._config.maxCachingSeconds,
       );
+      if(action == CallAction.GetBaseReport){
+        const reportPaylaod = payload as GetBaseReportRequest;
+        this._logger.info("inside send call");
+        this._logger.info(reportPaylaod);
+        this._cache.set(
+          reportPaylaod.requestId.toString(),
+          callbackUrl.replace("baseReport", "notifyReport"),
+          AbstractModule.CALLBACK_URL_REPORT_CACHE_PREFIX + identifier,
+          this._config.maxCachingSeconds
+        )
+      }
     }
     // TODO: Future - Compound key with tenantId
     return this._cache
