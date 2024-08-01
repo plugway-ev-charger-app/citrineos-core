@@ -483,8 +483,6 @@ export class TransactionsModule extends AbstractModule {
       ],
     });
     const variable = component?.variables?.[0];
-    this._logger.info(component);
-    this._logger.info(variable);
     if (!component || !variable) {
       this._logger.warn(
         'Missing component or variable for status notification. Status notification cannot be assigned to device model.',

@@ -61,7 +61,6 @@ export class SequelizeDeviceModelRepository extends SequelizeRepository<Variable
     if (variableAttributeTypes.length !== new Set(variableAttributeTypes).size) {
       throw new Error('All variable attributes in ReportData must have different types.');
     }
-
     const [component, variable] = await this.findOrCreateEvseAndComponentAndVariable(value.component, value.variable, stationId);
 
     let dataType: DataEnumType | null = null;
@@ -167,8 +166,6 @@ export class SequelizeDeviceModelRepository extends SequelizeRepository<Variable
           })
         )[0]
       : undefined;
-      console.log("Inside findOrCreateEvseAndComponent for component name" + componentType.name + "evse is:");
-      console.log(evse)
     const [component, componentCreated] = await this.component.readOrCreateByQuery({
       where: { name: componentType.name, instance: componentType.instance ? componentType.instance : null,
         evseDatabaseId:evse ? evse.databaseId:null },
@@ -178,14 +175,10 @@ export class SequelizeDeviceModelRepository extends SequelizeRepository<Variable
         instance: componentType.instance,
       },
     });
-    console.log(componentCreated);
-    console.log(component);
     // Note: this permits changing the evse related to the component
     if (component.evseDatabaseId !== evse?.databaseId && evse) {
-      console.log("Inside evse id change of component");
       await this.component.updateByKey({ evseDatabaseId: evse.databaseId }, component.get('id'));
     }
-    console.log("After evse id change of component")
     if (componentCreated && stationId) {
       // Only execute if this method is called in the context of a specific station
       // Excerpt from OCPP 2.0.1 Part 1 Architecture & Topology - 4.2 :
@@ -201,7 +194,6 @@ export class SequelizeDeviceModelRepository extends SequelizeRepository<Variable
             instance: null,
           },
         });
-        console.log("default variable created");
         // This can happen asynchronously
         this.componentVariable.readOrCreateByQuery({
           where: { componentId: component.id, variableId: defaultComponentVariable.id },
@@ -218,7 +210,6 @@ export class SequelizeDeviceModelRepository extends SequelizeRepository<Variable
             mutability: MutabilityEnumType.ReadOnly,
           }),
         );
-        console.log("Variable attribute is created");
       }
     }
 
@@ -263,7 +254,155 @@ export class SequelizeDeviceModelRepository extends SequelizeRepository<Variable
     }
     return savedVariableAttributes;
   }
-
+  async findChargingStationById(stationId:string, connectorStatus:any, chargingStationAttributes:any,evseId?:number, connectorId?:number){
+    console.log("Indisde findChargingStationById");
+    const charingStationComponentPromise = this.component.readOnlyOneByQuery({where:{name:'ChargingStation'}});
+    const evsePromise = this.evse.readOnlyOneByQuery({where:{id:evseId, connectorId:null}});
+    const [chargingStationComponent, evse] = await Promise.all([charingStationComponentPromise,evsePromise]);
+    console.log(chargingStationComponent);
+    console.log("-----");
+    console.log(evse);
+    console.log("-----")
+    const evseComponentPromise = this.component.readOnlyOneByQuery({where:{name:"EVSE", evseDatabaseId:evse?.databaseId}});
+    const availabilityStatePromise = this.variable.readOnlyOneByQuery({where:{name:"AvailabilityState"}});
+    const [evseComponent, availabilityState] = await Promise.all([evseComponentPromise,availabilityStatePromise]);
+    console.log("evse component");
+    console.log(evseComponent);
+    console.log("Availability state")
+    console.log(availabilityState);
+    console.log("connector status");
+    console.log(connectorStatus);
+    const allEvse = await this.evse.readAllByQuery({where:{connectorId:null}});
+    const evseDatabaseIds = allEvse.map((evse:any) => evse.databaseId);
+    console.log("evseDatabaseIds")
+    console.log(evseDatabaseIds);
+    const allEvseComponent = await this.component.readAllByQuery({where:{evseDatabaseId:evseDatabaseIds}});
+    const componentIds = allEvseComponent.map((component:any) => component.id);
+    const allEvseComponentAvailabilityState = await this.readAllByQuery({where:{stationId, variableId: availabilityState?.id,componentId:componentIds}});
+    
+    if(connectorStatus && connectorStatus.length){
+      const statusCount = connectorStatus.length;
+      let availableCount = 0;
+      let unavailableCount = 0;
+      let reservedCount = 0;
+      let faultedCount = 0;
+      let occupiedCount = 0;
+      for(let i= 0; i< connectorStatus.length; i++){
+        let status = connectorStatus[i] as string;
+        switch(status.toLowerCase()){
+          case "available":
+            availableCount++;
+            break;
+          case "unavailable":
+            unavailableCount++;
+            break;
+          case "reserved":
+            reservedCount++;
+            break;
+          case "faulted":
+            faultedCount++;
+            break;
+          case "occupied":
+            occupiedCount++;
+            break;
+        }
+      }
+      console.log("availableCount:" + availableCount);
+      console.log("unavailableCount:" + unavailableCount);
+      console.log("reservedCount:" + reservedCount);
+      console.log("faultedCount:" + faultedCount);
+      console.log("occupiedCount:" + occupiedCount);
+      let evseStatus:string;
+      if(reservedCount > 0){
+        evseStatus = "Reserved";
+      }
+      else if(occupiedCount > 0){
+        evseStatus  ="Occupied";
+      }else if(unavailableCount === statusCount){
+        evseStatus = "Unavailable";
+      }else if(faultedCount === statusCount){
+        evseStatus = "Faulted";
+      }else{
+        evseStatus = "Available";
+      }
+      console.log("last evse status")
+      console.log(evseStatus);
+      if(allEvseComponentAvailabilityState){
+        console.log("All evse componenent availability state");
+        console.log(allEvseComponentAvailabilityState);
+        const allEvseStateCount = allEvseComponentAvailabilityState.length;
+        let evseAvailableCount = 0;
+        let evseUnavailableCount = 0;
+        let evseReservedCount = 0;
+        let evseFaultedCount = 0;
+        let evseOccupiedCount = 0;
+        for(let i = 0; i< allEvseComponentAvailabilityState.length;i++){
+          if(allEvseComponentAvailabilityState[i].componentId === evseComponent?.id){
+            continue;
+          }
+          let status = allEvseComponentAvailabilityState[i].value;
+          switch(status?.toLowerCase()){
+            case "available":
+              evseAvailableCount++;
+              break;
+            case "unavailable":
+              evseUnavailableCount++;
+              break;
+            case "reserved":
+              evseReservedCount++;
+              break;
+            case "faulted":
+              evseFaultedCount++;
+              break;
+            case "occupied":
+              evseOccupiedCount++;
+              break;
+          }
+        }
+        switch(evseStatus?.toLowerCase()){
+          case "available":
+            evseAvailableCount++;
+            break;
+          case "unavailable":
+            evseUnavailableCount++;
+            break;
+          case "reserved":
+            evseReservedCount++;
+            break;
+          case "faulted":
+            evseFaultedCount++;
+            break;
+          case "occupied":
+            evseOccupiedCount++;
+            break;
+        }
+        console.log("evseavailableCount:" + evseAvailableCount);
+        console.log("evseunavailableCount:" + evseUnavailableCount);
+        console.log("evsereservedCount:" + evseReservedCount);
+        console.log("evsefaultedCount:" + evseFaultedCount);
+        console.log("evseoccupiedCount:" + evseOccupiedCount);
+      let chargerStatus:string;
+      if(evseReservedCount == allEvseStateCount){
+        chargerStatus = "Reserved";
+      }
+      else if(evseOccupiedCount ==  allEvseStateCount){
+        chargerStatus  ="Occupied";
+      }else if(evseUnavailableCount === allEvseStateCount){
+        chargerStatus = "Unavailable";
+      }else if(evseFaultedCount === allEvseStateCount){
+        chargerStatus = "Faulted";
+      }else{
+        chargerStatus = "Available";
+      }
+      await this._updateAllByQuery(
+            {value: chargerStatus}
+          ,{where:{stationId, componentId:chargingStationComponent?.id, variableId:availabilityState?.id}});
+        
+      }
+      await this._updateAllByQuery({value: evseStatus}, {where:{stationId, componentId:evseComponent?.id, variableId:availabilityState?.id}})
+      console.log("Charger and evse status update successfull");
+    }
+  }
   async createOrUpdateBySetVariablesDataAndStationId(setVariablesData: SetVariableDataType[], stationId: string, isoTimestamp: string): Promise<VariableAttribute[]> {
     const savedVariableAttributes: VariableAttribute[] = [];
     for (const data of setVariablesData) {
@@ -293,9 +432,6 @@ export class SequelizeDeviceModelRepository extends SequelizeRepository<Variable
   }
 
   async updateResultByStationId(result: SetVariableResultType, stationId: string, isoTimestamp: string): Promise<VariableAttribute | undefined> {
-    console.log("Inside updateResultByStationId, before savedVariableAttribute");
-    console.log(result);
-    console.log(result.evseDatabaseId);
     const savedVariableAttribute = await super.readOnlyOneByQuery({
       where: { stationId, type: result.attributeType ?? AttributeEnumType.Actual },
       include: [
@@ -315,8 +451,7 @@ export class SequelizeDeviceModelRepository extends SequelizeRepository<Variable
           },
         },
       ],
-    });
-    console.log("Inside updateResultByStationId, after savedVariableAttribute");
+    });;
     if (savedVariableAttribute) {
       await this.variableStatus.create(
         VariableStatus.build({

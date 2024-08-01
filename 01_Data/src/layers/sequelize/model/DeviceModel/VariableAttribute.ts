@@ -82,7 +82,7 @@ export class VariableAttribute extends Model implements VariableAttributeType {
   @Column({
     type: DataType.DATE,
     get() {
-      return this.getDataValue('generatedAt').toISOString();
+      return this.getDataValue('generatedAt')?.toISOString();
     },
   })
   declare generatedAt: string;
