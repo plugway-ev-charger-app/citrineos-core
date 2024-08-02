@@ -29,7 +29,7 @@ import {
   TransactionType,
 } from '@citrineos/base';
 import { FastifyInstance, FastifyRequest } from 'fastify';
-import { UpsertTariffRequest } from "./model/tariffs";
+import { UpsertTariffRequest } from './model/tariffs';
 import { plainToInstance } from 'class-transformer';
 
 /**
@@ -108,21 +108,6 @@ export class TransactionsModuleApi
 
   // TODO: Determine how to implement readAllTransactionsByStationIdAndChargingStates as a GET...
   // TODO: Determine how to implement existsActiveTransactionByIdToken as a GET...
-
-  // @AsDataEndpoint(
-  //   Namespace.Tariff,
-  //   HttpMethod.Put,
-  //   undefined,
-  //   TariffSchema,
-  // )
-  // async upsertTariff(
-  //   request: FastifyRequest<{
-  //     Body: any;
-  //   }>,
-  // ): Promise<Tariff> {
-  //   const tariff = this.buildTariff(plainToInstance(UpsertTariffRequest, request.body));
-  //   return await this._module.tariffRepository.upsertTariff(tariff);
-  // }
 
   @AsDataEndpoint(
     Namespace.Tariff,
