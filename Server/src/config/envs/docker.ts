@@ -107,11 +107,9 @@ export function createDockerConfig() {
             port: 8443,
             protocol: 'ocpp2.0.1',
             tlsKeyFilePath:
-              '/usr/local/apps/citrineos-core/Server/src/assets/certificates/leafKey.pem',
+              '/citrineos-core/Server/certs/leafKey.pem',
             tlsCertificateChainFilePath:
-              '/usr/local/apps/citrineos-core/Server/src/assets/certificates/certChain.pem',
-            rootCACertificateFilePath:
-              '/usr/local/apps/citrineos-core/Server/src/assets/certificates/rootCertificate.pem',
+              '/citrineos-core/Server/certs/certChain.pem',
           },
           {
             id: '3',
