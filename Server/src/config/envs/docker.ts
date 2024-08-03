@@ -46,12 +46,12 @@ export function createDockerConfig() {
     },
     data: {
       sequelize: {
-        host: 'plugway-db-1.c1u2ksc62zcr.eu-central-1.rds.amazonaws.com',
-        port: 5432,
-        database: 'plugway-db',
+        host: process.env.RDS_HOST,
+        port: 5432, // Default PostgreSQL port, adjust if necessary
+        database: process.env.RDS_DATABASE,
         dialect: 'postgres',
-        username: 'postgres',
-        password: '3KiclZGdm3Zmmu8TBvnS',
+        username: process.env.RDS_USERNAME,
+        password: process.env.RDS_PASSWORD,
         storage: '',
         sync: false,
         alter: true,
