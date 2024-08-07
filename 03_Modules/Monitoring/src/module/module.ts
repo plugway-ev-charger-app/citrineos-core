@@ -365,12 +365,15 @@ export class MonitoringModule extends AbstractModule {
   ): Promise<void> {
     this._logger.debug('SetVariables response received:', message, props);
 
-    message.payload.setVariableResult.forEach(async (setVariableResultType) => {
-      this._deviceModelRepository.updateResultByStationId(
-        setVariableResultType,
-        message.context.stationId,
-        message.context.timestamp,
-      );
-    });
+    const updatePromises = message.payload.setVariableResult.map(
+      (setVariableResultType) => 
+        this._deviceModelRepository.updateResultByStationId(
+          setVariableResultType,
+          message.context.stationId,
+          message.context.timestamp,
+        )
+    );
+
+    await Promise.all(updatePromises);
   }
 }

@@ -497,7 +497,7 @@ export class ConfigurationModuleApi
           variableAttribute = await variableAttribute.reload({
             include: [Variable, Component],
           });
-          this._module.deviceModelRepository.updateResultByStationId(
+          await this._module.deviceModelRepository.updateResultByStationId(
             {
               attributeType: variableAttribute.type,
               attributeStatus: SetVariableStatusEnumType.Accepted,
