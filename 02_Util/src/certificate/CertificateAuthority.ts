@@ -74,11 +74,7 @@ export class CertificateAuthorityService {
 
     switch (certificateType) {
       case CertificateSigningUseEnumType.V2GCertificate: {
-        const signedCert = await this._v2gClient.getSignedCertificate(
-          extractEncodedContentFromCSR(csrString),
-        );
-        const caCerts = await this._v2gClient.getCACertificates();
-        return this._createCertificateChainWithoutRootCA(signedCert, caCerts);
+        return await this._chargingStationClient.getCertificateChain(csrString);
       }
       case CertificateSigningUseEnumType.ChargingStationCertificate: {
         return await this._chargingStationClient.getCertificateChain(csrString);

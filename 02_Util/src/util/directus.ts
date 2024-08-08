@@ -39,18 +39,12 @@ export class DirectusUtil implements IFileAccess {
       ? logger.getSubLogger({ name: this.constructor.name })
       : new Logger<ILogObj>({ name: this.constructor.name });
     let client;
-    if (this._config.util.directus?.token) {
-      // Auth with static token
-      client = createDirectus(
-        `http://${this._config.util.directus?.host}:${this._config.util.directus?.port}`,
-      )
-        .with(staticToken(this._config.util.directus?.token))
-        .with(rest());
-    } else if (
+    if (
       this._config.util.directus?.username &&
       this._config.util.directus?.password
     ) {
       // Auth with username and password
+      this._logger.info("Server with username password is created");
       client = createDirectus<Schema>(
         `http://${this._config.util.directus?.host}:${this._config.util.directus?.port}`,
       )
@@ -59,12 +53,14 @@ export class DirectusUtil implements IFileAccess {
       this._logger.info(
         `Logging into Directus as ${this._config.util.directus.username}`,
       );
-      client.login(
+      const authData = client.login(
         this._config.util.directus.username,
         this._config.util.directus.password,
       );
+      this._logger.info(authData);
     } else {
       // No auth
+      this._logger.info("Server without auth is created");
       client = createDirectus<Schema>(
         `http://${this._config.util.directus?.host}:${this._config.util.directus?.port}`,
       ).with(rest());

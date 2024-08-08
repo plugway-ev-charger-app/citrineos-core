@@ -224,6 +224,7 @@ export class CertificatesModule extends AbstractModule {
         ocspRequest,
         reqData.responderURL,
       );
+      this._logger.info(`ocsp response is ${ocspResponse}`);
       this.sendCallResultWithMessage(message, {
         status: GetCertificateStatusEnumType.Accepted,
         ocspResponse: ocspResponse,
