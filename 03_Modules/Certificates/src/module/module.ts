@@ -246,7 +246,7 @@ export class CertificatesModule extends AbstractModule {
     this._logger.debug('Sign certificate request received:', message, props);
     const stationId: string = message.context.stationId;
     const csrString: string = message.payload.csr.replace(/\n/g, '');
-    const certificateType: CertificateSigningUseEnumType | undefined =
+    const certificateType: CertificateSigningUseEnumType | undefined | null =
       message.payload.certificateType;
 
     // TODO OCTT Currently fails the CSMS on test case TC_A_14_CSMS if an invalid csr is rejected
@@ -339,7 +339,7 @@ export class CertificatesModule extends AbstractModule {
   private async _verifySignCertRequest(
     csrString: string,
     stationId: string,
-    certificateType?: CertificateSigningUseEnumType,
+    certificateType?: CertificateSigningUseEnumType | null,
   ): Promise<void> {
     // Verify certificate type
     if (
