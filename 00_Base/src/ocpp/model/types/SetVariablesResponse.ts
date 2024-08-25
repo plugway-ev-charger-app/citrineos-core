@@ -32,7 +32,7 @@ export interface SetVariableResultType {
   attributeType?: AttributeEnumType | null;
   attributeStatus: SetVariableStatusEnumType;
   attributeStatusInfo?: StatusInfoType | null;
-  evseDatabaseId?:number;
+  evseDatabaseId?: number | null;
   component: ComponentType;
   variable: VariableType;
 }

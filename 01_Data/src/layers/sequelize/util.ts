@@ -110,19 +110,6 @@ export class DefaultSequelizeInstance {
       username: this.config.data.sequelize.username,
       password: this.config.data.sequelize.password,
       storage: this.config.data.sequelize.storage,
-  private static defaultSequelize(config: SystemConfig, sync?: boolean, logger?: Logger<ILogObj>) {
-    const sequelizeLogger = logger ? logger.getSubLogger({ name: this.name }) : new Logger<ILogObj>({ name: this.name });
-
-    sequelizeLogger.info('Creating default Sequelize instance with config: ', config);
-
-    const sequelize: Sequelize = new Sequelize({
-      host: config.data.sequelize.host,
-      port: config.data.sequelize.port,
-      database: config.data.sequelize.database,
-      dialect: config.data.sequelize.dialect as Dialect,
-      username: config.data.sequelize.username,
-      password: config.data.sequelize.password,
-      storage: config.data.sequelize.storage,
       models: [
         AdditionalInfo,
         Authorization,
@@ -162,23 +149,5 @@ export class DefaultSequelizeInstance {
       ],
       logging: (_sql: string, _timing?: number) => {},
     });
-      logging: (_sql: string, _timing?: number) => {
-        // TODO: Look into fixing that
-        // sequelizeLogger.debug(timing, sql);
-      },
-    });
-
-    sequelizeLogger.info('Sequelize instance created');
-    if (config.data.sequelize.alter) {
-      sequelize.sync({ alter: true }).then(() => {
-        sequelizeLogger.info('Database altered');
-      });
-    } else if (config.data.sequelize.sync && sync) {
-      sequelize.sync({ force: true }).then(() => {
-        sequelizeLogger.info('Database synchronized');
-      });
-    }
-
-    return sequelize;
   }
 }

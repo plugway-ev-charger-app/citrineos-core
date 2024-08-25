@@ -306,7 +306,7 @@ export class ReportingModule extends AbstractModule {
             attributeType: variableAttribute.type,
             attributeStatus: SetVariableStatusEnumType.Accepted,
             attributeStatusInfo: { reasonCode: message.action },
-            evseDatabaseId:variableAttribute.evseDatabaseId,
+            evseDatabaseId: variableAttribute.evseDatabaseId,
             component: variableAttribute.component,
             variable: variableAttribute.variable,
           },
